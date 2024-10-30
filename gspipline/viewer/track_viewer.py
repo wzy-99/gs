@@ -142,7 +142,7 @@ class TrackViewer:
                     event.client.camera.position = event.target.position
                     event.client.camera.wxyz = event.target.wxyz
 
-    def set_point_cloud(self, points3D_xyz, points3D_rgb):
+    def set_point_cloud(self, points3D_xyz: np.ndarray, points3D_rgb: np.ndarray):
         self.point_cloud_handle = self.viser_server.scene.add_point_cloud(
             "/gaussian_splatting_initial_points",
             points=points3D_xyz * VISER_NERFSTUDIO_SCALE_RATIO,

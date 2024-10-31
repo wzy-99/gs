@@ -352,7 +352,7 @@ def populate_render_tab(
         del fov
 
         # Hide all scene nodes when we're previewing the render.
-        server.scene.set_global_visibility(False)
+        # server.scene.set_global_visibility(False)
 
         # Back up and then set camera poses.
         for client in server.get_clients().values():
@@ -381,7 +381,7 @@ def populate_render_tab(
             client.flush()
 
         # Un-hide scene nodes.
-        server.scene.set_global_visibility(True)
+        # server.scene.set_global_visibility(True)
 
     preview_frame_slider = add_preview_frame_slider()
 

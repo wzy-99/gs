@@ -6,6 +6,7 @@ from nerfstudio.data.dataparsers.base_dataparser import DataParser
 from gspipline.viewer.track_viewer import TrackViewer, TrackViewerConfig
 
 import tyro
+import math
 
 
 @dataclass
@@ -20,6 +21,13 @@ class ViewerLauncherConfig:
 def main(config: ViewerLauncherConfig):
     dataparser: DataParser = config.dataparser.setup()
     outputs = dataparser.get_dataparser_outputs()
+    if config.viewer.H == -1:
+        config.viewer.H = outputs.cameras[0].height.cpu().numpy().tolist()[0]
+    if config.viewer.W == -1:
+        config.viewer.W = outputs.cameras[0].width.cpu().numpy().tolist()[0]
+    if config.viewer.focal_degree == -1:
+        fx = outputs.cameras[0].fx.cpu().numpy().tolist()[0]
+        config.viewer.focal_degree = 2 * (180 / math.pi) * math.atan(outputs.cameras[0].width.cpu().numpy().tolist()[0] / (2 * fx))
     viewer: TrackViewer = config.viewer.setup()
     viewer.init_scene(outputs)
     viewer.run()

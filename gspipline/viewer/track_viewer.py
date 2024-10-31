@@ -36,18 +36,18 @@ class TrackViewerConfig(InstantiateConfig):
     """output directory for camera track"""
 
     # For camera
-    H: int = 1080
-    """height of the camera"""
-    W: int = 1920
-    """width of the camera"""
-    focal_degree: float = 50.0
-    """focal degree of the camera"""
+    H: int = -1
+    """height of the camera. If -1, use the first camera in the dataset."""
+    W: int = -1
+    """width of the camera. If -1, use the first camera in the dataset."""
+    focal_degree: float = -1
+    """focal degree of the camera. If -1, use the first camera in the dataset. We not support x,y focal now."""
 
     camera_frustum_scale: float = 0.1
     """Scale for the camera frustums in the viewer."""
     scale_factor: float = 1.0
     """Scale factor for the images."""
-    point_size: float = 0.1
+    point_size: float = 0.01
     """Size of the points in the point cloud."""
 
 

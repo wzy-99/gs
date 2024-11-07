@@ -6,6 +6,7 @@ import json
 import os
 from PIL import Image
 import numpy as np
+import imageio
 
 from nerfstudio.configs.base_config import InstantiateConfig
 from nerfstudio.cameras.cameras import Cameras
@@ -45,16 +46,27 @@ class BaseRender:
         camera_path = get_path_from_json(camera_path)
         return camera_path
     
-    def save_image(self, img: np.ndarray, name: str):
+    def save_image(self, image: np.ndarray, name: str):
         """Saves the image to the output path.
         Args:
-            img (np.ndarray): Image to save. Has shape (H, W, 3).
+            image (np.ndarray): Image to save. Has shape (H, W, 3).
         """
         if self.config.output_format in ["images", "both"]:
-            if img.dtype == np.float32:
-                img = (img * 255).astype(np.uint8)
-            output_path = self.config.output_path / f"{name}.{self.config.image_format}"
-            Image.fromarray(img).save(output_path)
+            if image.dtype == np.float32:
+                image = (image * 255).astype(np.uint8)
+            output_path = self.config.output_path / 'images'
+            os.makedirs(output_path, exist_ok=True)
+            Image.fromarray(image).save(output_path / f'{name}.{self.config.image_format}')
     
-    def save_video(self, imgs: List[torch.Tensor], name: str):
-        ...
+    def save_video(self, images: List[np.ndarray], name: str):
+        """Saves the video to the output path.
+        Args:
+            images (List[np.ndarray]): List of images to save. Each image has shape (H, W, 3).
+            path (Path): Path to the output video file.
+        """
+        if self.config.output_format in ["video", "both"]:
+            if images[0].dtype == np.float32:
+                images = [image * 255 for image in images]
+            output_path = self.config.output_path / 'videos'
+            os.makedirs(output_path, exist_ok=True)
+            imageio.mimsave(output_path / name, images, fps=30)

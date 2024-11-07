@@ -66,6 +66,7 @@ class PointCloudRender(BaseRender):
             points3D_rgb = points3D_rgb / 255.0
             pcd = Pointclouds(points=[points3D_xyz], features=[points3D_rgb]).to(self.device)
             cameras = self.load_tracks(self.config.camera_path_filename)
+            frames = []
             for i in range(len(cameras)):
                 R, T = nerfstudio2pytorch3d(cameras[i].camera_to_worlds)
 
@@ -93,7 +94,11 @@ class PointCloudRender(BaseRender):
 
                 images: torch.Tensor = renderer(pcd) # B x H x W x 3
 
-                self.save_image(images[0, ..., :3].cpu().numpy(), f"frame_{i:04d}")
+                image = images[0, ..., :3].cpu().numpy()
+                frames.append(image)
+                self.save_image(image, f"frame_{i:04d}")
+            
+            self.save_video(frames, "vedio.mp4")
 
 
     def main(self):
@@ -111,6 +116,7 @@ class PointCloudRender(BaseRender):
                 IO
             )
             pcd = IO().load_pointcloud(self.config.point_cloud_path, device=self.device)
+            frames = []
             for i in range(len(cameras)):
                 R, T = nerfstudio2pytorch3d(cameras[i].camera_to_worlds)
 
@@ -138,4 +144,8 @@ class PointCloudRender(BaseRender):
 
                 images = renderer(pcd)
 
-                self.save_image(images[0, ..., :3].cpu().numpy(), f"frame_{i:04d}")
+                image = images[0, ..., :3].cpu().numpy()
+                self.save_image(image, f"frame_{i:04d}")
+                frames.append(image)
+            
+            self.save_video(frames, "vedio.mp4")

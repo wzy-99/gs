@@ -18,7 +18,7 @@ def main(config):
     
     config = GaussianDiscriminatorPipelineConfig(
         encoder_pretrained_ckpt='/home/wzy/data/noposplat/re10k.ckpt',
-        encoder=config
+        gaussian_encoder=config
     )
 
     gs_pipeline = GaussianDiscriminatorPipeline(config)

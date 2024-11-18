@@ -139,8 +139,6 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
                     - "rotations" (torch.Tensor): shape (B, HW, 4)
                     - "depth" (torch.Tensor): shape (B, HW)
         """
-        image = image * 2 - 1.0
-
         if self.config.nomalize_intrinsics:
             H, W = image.shape[-2:]
             intrinsics = intrinsics.clone()
@@ -225,7 +223,7 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
             features: Tensor = self.image_encoder(images, masks)
 
         pred: Tensor = self.head(features)
-        pred = torch.sigmoid(pred)
+        # pred = torch.sigmoid(pred)
 
         return {
             "pred": pred,
@@ -268,8 +266,8 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
                 Returns:
                     dict: a dictionary containing the loss and the output of the model.
         """
-        image = batch['image']
-        intrinsics = batch['intrinsics']
+        image = batch['image'] * 2 - 1 # (B, v, 3, H, W)
+        intrinsics = batch['intrinsics'] # (B, v, 3, 3)
         # predict gaussians        
         with torch.no_grad():
             gaussians = self._predict_gaussian(image, intrinsics)
@@ -289,18 +287,18 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
         with torch.no_grad():
             renderings = self._render_gaussian(gaussians, camtoworlds, Ks, width, height)
 
-        fake_images: Tensor = renderings['image']
-        fake_images = fake_images.flatten(0, 1)
-        fake_images = fake_images.permute(0, 3, 1, 2)
-        real_images: Tensor = batch['image']
-        real_images = real_images.flatten(0, 1)
-        images = torch.cat([real_images, fake_images], dim=0)
+        fake_images: Tensor = renderings['image'] # (B, n, H, W, 3)
+        fake_images = fake_images.flatten(0, 1) # (Bn, H, W, 3)
+        fake_images = fake_images.permute(0, 3, 1, 2) # (Bn, 3, H, W)
+        real_images: Tensor = batch['image'] # (B, v, 3, H, W)
+        real_images = real_images.flatten(0, 1) # (Bv, 3, H, W)
+        images = torch.cat([real_images, fake_images], dim=0) # (Bv+Bn, 3, H, W)
         if self.config.image_encoder.image_size[0] != images.shape[-1] or self.config.image_encoder.image_size[1] != images.shape[-2]:
             images = nn.functional.interpolate(images, size=self.config.image_encoder.image_size, mode='bilinear', align_corners=False)
 
         preds = self(images)
 
-        gt = torch.cat([torch.ones(len(fake_images), 1), torch.zeros(len(real_images), 1)], dim=0).to(self.device)
+        gt = torch.cat([torch.ones(real_images.shape[0], 1), torch.zeros(fake_images.shape[0], 1)], dim=0).to(self.device) # (Bv+Bn, 1)
         targets = {
             "gt": gt,
         }

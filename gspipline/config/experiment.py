@@ -38,7 +38,7 @@ class TrainerConfig:
     """Number of validation steps to run before starting the training loop."""
     overfit_batches : float | int = 0.0
     """Fraction of the training set to use for overfitting. Set to 0.0 to disable overfitting."""
-    precision: int = 16
+    precision: int | str = "16-mixed"
     """Precision to use for training. Can be 16 or 32."""
     profiler: str | None = None
     """Profiler to use for profiling the training process. Can be "simple", "advanced", or None."""
@@ -57,6 +57,8 @@ class CheckpointConfig:
     """Number of top checkpoints to save."""
     save_weights_only: bool = True
     """Whether to save only the model weights."""
+    monitor: str = "loss"
+    """Metric to monitor for saving checkpoints."""
 
 
 @dataclass  

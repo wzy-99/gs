@@ -30,4 +30,4 @@ apply_bounds_shim: true
 
 gs_params_head_type: dpt_gs
 pose_free: true
-pretrained_weights: ""
+pretrained_weights: "data/noposplat/re10k.ckpt"

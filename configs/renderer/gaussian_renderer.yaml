@@ -1,0 +1,6 @@
+antialiased: False
+strategy: DefaultStrategy
+packed: False
+sparse_grad: False
+camera_model: pinhole
+render_mode: RGB

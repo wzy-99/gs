@@ -1,13 +1,17 @@
 import numpy as np
 import torch
 
+from typing import Literal, Type
+
 from gspipline.dataset.nuscene import nuSceneConfig, nuSceneDataset
 from gspipline.dataset.utils import center_crop_image, sample_n, align_coordinate, resize_image, normalize_extrinsics
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
 class nuSceneNovelViewConfig(nuSceneConfig):
+    _target: Type = field(default_factory=lambda: nuSceneNovelViewDataset)
+
     num_target_views: int = 1
     """Number of target views to be used for training."""
     num_context_views: int = 2
@@ -20,7 +24,8 @@ class nuSceneNovelViewConfig(nuSceneConfig):
     """Whether to normalize the extrinsics."""
     image_size: int | tuple[int, int] = (256, 256)
     """Image size to be used for training, if -1, use the original image size."""
-
+    stage: Literal['train', 'val', 'test'] = 'train' # import Literal from typing_extensions
+    """Stage of the dataset, train, val or test."""
 
 
 class nuSceneNovelViewDataset(nuSceneDataset):

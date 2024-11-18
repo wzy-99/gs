@@ -39,13 +39,19 @@ class LearningConfig:
     """head learning rate multiplier"""
     encoder_trainable: bool = False
     """whether to train the encoder"""
+    patience: int = 10
+    """patience for early stopping"""
+    factor: float = 0.1
+    """factor for early stopping"""
+    min_lr: float = 1e-6
+    """minimum learning rate`"""
+    monitor: str = "loss"
+    """monitor for early stopping"""
 
 @dataclass
 class GaussianDiscriminatorPipelineConfig:
     gaussian_encoder: EncoderCfg = field(default_factory=EncoderCfg)
     """ encoder config """
-    encoder_pretrained_ckpt: Path = None
-    """ pretrained checkpoint for the encoder """
     renderer: GaussianSplattingConfig = field(default_factory=GaussianSplattingConfig)
     """ renderer config """
     image_encoder: ImageEncoderConfig = field(default_factory=ImageEncoderConfig)
@@ -89,18 +95,22 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
 
     def _init_gaussian_encoder(self):
         self.gaussian_encoder, _ = get_encoder(self.config.gaussian_encoder)
-        state_dict = torch.load(self.config.encoder_pretrained_ckpt)['state_dict']
+        state_dict = torch.load(self.config.gaussian_encoder.pretrained_weights)['state_dict']
         state_dict = {k[len("encoder."):] : v for k, v in state_dict.items() if k.startswith("encoder.")}
         self.gaussian_encoder.load_state_dict(state_dict)
         self.gaussian_encoder.eval()
+        self.gaussian_encoder.requires_grad_(False)
     
     def _init_renderer(self):
         self.renderer = GaussianSplattingRender(self.config.renderer)
         self.renderer.eval()
+        self.renderer.requires_grad_(False)
 
     def _init_discriminator(self):
         self.image_encoder: nn.Module = torch.hub.load(self.config.image_encoder.repo_or_dir, self.config.image_encoder.model)
-        self.image_encoder.eval()
+        if not self.config.learning.encoder_trainable:
+            self.image_encoder.eval()
+            self.image_encoder.requires_grad_(False)
 
         self.head = nn.Sequential(
             nn.Linear(self._get_image_encoder_features_dim(), 512),
@@ -274,8 +284,8 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
             Ks.append(batch['novel_intrinsics'])
         camtoworlds = torch.cat(camtoworlds, dim=1)
         Ks = torch.cat(Ks, dim=1)
-        width = batch['width']
-        height = batch['height']
+        width = batch['width'][0]
+        height = batch['height'][0]
         with torch.no_grad():
             renderings = self._render_gaussian(gaussians, camtoworlds, Ks, width, height)
 
@@ -312,4 +322,10 @@ class GaussianDiscriminatorPipeline(LightningModule, LogMixin):
         params.append({"params": self.head.parameters(), "lr": self.config.learning.base_lr * self.config.learning.head_lr_mult})
         if self.config.learning.encoder_trainable:
             params.append({"params": self.image_encoder.parameters(), "lr": self.config.learning.base_lr * self.config.learning.encoder_lr_mult})
-        return torch.optim.Adam(params)
+        optimizer = torch.optim.Adam(params)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=self.config.learning.patience, factor=self.config.learning.factor, min_lr=self.config.learning.min_lr)
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": scheduler,
+            "monitor": self.config.learning.monitor,
+        }

@@ -1,0 +1,17 @@
+defaults:
+  - ../renderer/gaussian_renderer@gaussian_renderer
+  - ../gaussian_encoder/noposplat@gaussian_encoder
+
+image_encoder:
+  repo_or_dir: facebookresearch/dinov2
+  model: dinov2_vitg14
+  image_size: 224
+gaussian_size: 256
+nomalize_intrinsics: True
+render_reference_view: True
+render_novel_view: True
+learning:
+  base_lr: 0.0001
+  encoder_lr_mult: 1.0
+  head_lr_mult: 1.0
+  encoder_trainable: False

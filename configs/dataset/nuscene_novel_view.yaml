@@ -1,0 +1,11 @@
+root_path: data/nuScenes
+version: v1.0-mini
+vebose: False
+num_target_views: 1
+num_context_views: 2
+max_interval: 10
+center_crop: True
+normalize_extrinsics: True
+image_size:
+  - 256
+  - 256

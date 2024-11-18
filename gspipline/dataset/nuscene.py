@@ -1,7 +1,7 @@
 import os
 import numpy as np
-
 from PIL import Image
+from typing import Type
 
 from torch.utils.data import Dataset
 
@@ -9,20 +9,26 @@ from pyquaternion import Quaternion
 
 from nuscenes import NuScenes
 
+from gspipline.dataset.base_dataset import BaseDataset, BaseDatasetConfig
+
 from dataclasses import dataclass, field
 
-
 @dataclass
-class nuSceneConfig:
+class nuSceneConfig(BaseDatasetConfig):
+    _target: Type = field(default_factory=lambda: nuSceneDataset)
+    
     root_path: str = field(default='./data/nuScenes')
+    """ The root path of the nuScenes dataset. """
     version: str = field(default='v1.0-mini')
+    """ The version of the nuScenes dataset. """
     verbose: bool = False
+    """ Whether to print verbose messages. """
 
 
-class nuSceneDataset(Dataset):
+class nuSceneDataset(BaseDataset):
+    config: nuSceneConfig
     def __init__(self, config: nuSceneConfig):
-        super().__init__()
-        self.config = config
+        super().__init__(config)
         self.nusc = NuScenes(version=config.version, dataroot=config.root_path, verbose=config.verbose)
         self.cam_list = [          # {frame_idx}_{cam_id}.jpg
             "CAM_FRONT",        # "xxx_0.jpg"

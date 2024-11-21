@@ -1,5 +1,5 @@
 root_path: data/nuScenes
-version: v1.0-mini
+version: v1.0-trainval
 vebose: False
 num_target_views: 1
 num_context_views: 2

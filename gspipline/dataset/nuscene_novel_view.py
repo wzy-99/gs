@@ -33,6 +33,7 @@ class nuSceneNovelViewDataset(nuSceneDataset):
 
     def __init__(self, config: nuSceneNovelViewConfig):
         assert config.num_context_views == 2, "Currently, we only support two context views."
+
         if isinstance(config.image_size, int):
             config.image_size = (config.image_size, config.image_size)
         super().__init__(config)

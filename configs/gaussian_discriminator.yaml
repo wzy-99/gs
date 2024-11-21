@@ -20,7 +20,7 @@ data_module:
   train:
     num_workers: 4
     persistent_workers: true
-    batch_size: 4
+    batch_size: 32
   test:
     num_workers: 4
     persistent_workers: false

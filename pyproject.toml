@@ -1,14 +1,13 @@
-[project]
+[tool.poetry]
 name = "gspipline"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.10"
-dependencies = []
+description = ""
+authors = ["me"]
 
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
-[tool.setuptools.packages.find]
-include = ["gspipline*"]
+[tool.poetry.plugins."nerfstudio.method_configs"]
+splatfacto_discriminator = "gspipline.config.splatfacto_discriminator_config:splatfacto_discriminator"
+splatfacto_big_discriminator = "gspipline.config.splatfacto_discriminator_config:splatfacto_big_discriminator"
